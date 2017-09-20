@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.two.bbs.mapper.ImageMapper">
+	<update id="updateImg">
+		update img <set>
+			iscross=#{iscross}
+		</set>
+		where id=#{id}
+	</update>
+	<select id="findAllImg" resultMap="ImgRm">
+		SELECT i.ID ,i.address,p.title AS parentId ,i.subperson,i.sub_time,i.orderno,i.iscross
+			FROM img i
+			LEFT JOIN 
+			part p 
+			ON i.parentId = p.id
+			WHERE p.title = '工作环境'
+	</select>
+	<select id="findAllImgBP" resultMap="ImgRm" >
+		SELECT i.ID ,i.address,p.title AS parentId ,i.subperson,i.sub_time,i.orderno,i.iscross
+		FROM img i
+		LEFT JOIN 
+		part p 
+		ON i.parentId = p.id
+		WHERE p.id = #{parentId}
+	</select>
+	<select id="findAllImgBP_F" resultMap="ImgRm">
+		SELECT i.ID ,i.address,p.title AS parentId ,i.subperson,i.sub_time,i.orderno,i.iscross
+		FROM img i
+		LEFT JOIN 
+		part p 
+		ON i.parentId = p.id
+		WHERE i.iscross = '1' AND p.id = #{parentId}
+	</select>
+	<resultMap type="Img" id="ImgRm" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+	<select id="findOne" resultMap="ImgRm">
+	SELECT i.ID ,i.address,p.title AS parentId ,i.subperson,i.sub_time,i.orderno,i.iscross
+		FROM img i
+		LEFT JOIN 
+		part p 
+		ON i.parentId = p.id
+		WHERE i.iscross = '1' AND i.id = #{id}
+	</select>
+	<select id="findAll" resultMap="PartRm">
+		select * from part order by update_Time desc
+	
+	</select>
+	<resultMap type="Part" id="PartRm" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+	<delete id="deleteImg">
+		delete from img where id=#{id}
+
+	</delete>
+	<insert id="saveImg">		
+	insert into img values(
+			#{id},
+			#{address},
+			#{parentId},
+			#{subperson,jdbcType=VARCHAR},
+			#{subTime,jdbcType=DATE},
+			#{orderno},
+			#{iscross}
+		)
+	</insert>
+	
+	
+</mapper>

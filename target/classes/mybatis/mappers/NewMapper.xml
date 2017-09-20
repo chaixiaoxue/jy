@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.two.bbs.mapper.NewMapper">
+	<update id="updateNew">
+		update part <set>
+			title=#{title},
+			parentId=#{parentId},
+			content=#{content},
+			orderNo=#{orderNo},
+			<if test="updateTime!=null">update_Time=#{updateTime,jdbcType=VARCHAR},</if>
+			<if test="updateBy!=null">update_by=#{updateBy,jdbcType=VARCHAR},</if>
+			<if test="createTime!=null">create_Time=#{createTime,jdbcType=VARCHAR},</if>
+			<if test="createBy!=null">create_by=#{createBy,jdbcType=VARCHAR}</if>
+		</set>
+		where id=#{id}
+	</update>
+	<select id="findOne" resultMap="PartRm">
+	select * from part where ID=#{id}
+	</select>
+	<select id="fandAll" resultMap="PartRm">
+		select * from part where ParentId = '4'	
+	</select>
+	<select id="fandAllNews" resultMap="PartRm">
+		SELECT p.ID, p.TITLE,p.CONTENT,p.ORDERNO,p.CREATE_BY,p.CREATE_TIME,p.UPDATE_BY,p.UPDATE_TIME ,pa.TITLE AS PARENTID  
+		FROM part p  
+		LEFT JOIN
+		part pa
+		ON
+		p.PARENTID = pa.ID
+		WHERE p.PARENTID in(
+			<foreach collection="array" item="pid" separator=",">
+				#{pid}
+			</foreach>
+			
+		)
+		order by update_Time desc	
+	</select>
+	<select id="toviewnews" resultMap="PartRm">
+		SELECT p.ID, p.TITLE,p.CONTENT,p.ORDERNO,p.CREATE_BY,p.CREATE_TIME,p.UPDATE_BY,p.UPDATE_TIME ,pa.TITLE AS PARENTID  
+FROM part p  
+LEFT JOIN
+part pa
+ON
+p.PARENTID = pa.ID
+WHERE p.ID = #{id}
+	
+	</select>
+	<resultMap type="Part" id="PartRm" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+	<delete id="deleteNew">
+		delete from part where id=#{id}
+	</delete>
+	<insert id="saveNew">
+		insert into part values(
+			#{id},
+			#{title},
+			#{parentId},
+			#{content},
+			#{orderNo},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="savenews">
+		insert into part values(
+			#{id},
+			#{title},
+			#{parentId},
+			#{content},
+			#{orderNo},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+</mapper>

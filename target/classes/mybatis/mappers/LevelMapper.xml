@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.two.bbs.mapper.LevelMapper">
+
+	<select id="findAll" resultType="ExpLevel">
+		select * from exp_level_p
+	</select>
+	
+	<insert id="save">
+		insert into exp_level_p values (
+			#{levelId},
+			#{levelName},
+			#{experience},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{update By,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<delete id="delete">
+		delete from exp_level_p where level_id in(
+		<foreach collection="array"  item="id" separator=",">
+			#{id}
+		</foreach>
+		)
+	</delete>
+
+	<update id="update">
+		update exp_level_p 
+		<set>
+			level_name=#{levelName},
+			experience=#{experience},
+			level_name=#{levelName},
+			update_time=#{updateTime},
+			update_by=#{updateBy}
+		</set>
+		where level_id=#{levelId}
+	</update>
+	
+	<select id="getLevel" resultType="Integer">
+		select level_id from exp_level_p where experience&lt;=#{experience} order by experience desc limit 1	
+	</select>
+	
+</mapper>

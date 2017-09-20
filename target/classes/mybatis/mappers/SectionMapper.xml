@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.two.bbs.mapper.SectionMapper">
+	
+	
+	<select id="findAll" resultMap="sectionRM">
+		SELECT* FROM(SELECT* FROM(SELECT * FROM section_p)s
+LEFT JOIN 
+(SELECT user_id u_id,section_id s_id FROM section_user_p )s_u
+ON s.section_id=s_u.s_id)s
+LEFT JOIN 
+(SELECT user_id,username FROM user_p)u
+ON s.u_id=u.user_id
+	</select>
+	
+	<resultMap type="Section" id="sectionRM" autoMapping="true">
+		<id column="section_id" property="sectionId"/>
+		<collection property="managerList" ofType="User">
+			<id column="user_id" property="userId"/>
+			<result column="username" property="username"/>	
+		</collection>
+	</resultMap>
+	
+	<select id="findOne" resultMap="sectionRM">
+	SELECT* FROM(SELECT* FROM(SELECT * FROM section_p)s
+LEFT JOIN 
+(SELECT user_id u_id,section_id s_id FROM section_user_p )s_u
+ON s.section_id=s_u.s_id)s
+LEFT JOIN 
+(SELECT user_id,username FROM user_p)u
+ON s.u_id=u.user_id
+WHERE s.section_id=#{sectionId}
+	</select>
+	<!-- 添加版块 -->
+	<insert id="saveSection">
+		insert into section_p values(
+			#{sectionId},
+			#{sectionName},
+			#{remark},
+			#{state},
+			#{orderNo},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	<update id="updateState">
+		update section_p set state=#{state} where section_id in(
+			<foreach collection="sectionId" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</update>
+	<update id="updateSection">
+		update section_p
+		<set>
+			section_name = #{sectionName},
+			order_no = #{orderNo},
+			remark=#{remark},
+			state=#{state},
+			<if test="createTime != null">create_time = #{createTime},</if>
+			<if test="createBy != null">create_by = #{createBy},</if>
+			<if test="updateTime != null">update_time = #{updateTime},</if>
+			<if test="updateBy != null">update_by = #{updateBy}</if>
+		</set>	
+		where section_id=#{sectionId}
+	</update>
+	
+	<!-- 批量删除版块  -->
+	<delete id="deleteSections">
+		delete from section_p where section_id in(
+			<foreach collection="array" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</delete>
+	
+	
+</mapper>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.two.bbs.mapper.RecruitMapper">
+	<update id="update">
+		update recruit <set>
+			title=#{title},
+			recruiting=#{recruiting},
+			num=#{num},
+			money=#{money},
+			content=#{content},
+			requireddate=#{requireddate},
+			<if test="updateTime!=null">update_Time=#{updateTime,jdbcType=VARCHAR},</if>
+			<if test="updateBy!=null">update_by=#{updateBy,jdbcType=VARCHAR},</if>
+			<if test="createTime!=null">create_Time=#{createTime,jdbcType=VARCHAR},</if>
+			<if test="createBy!=null">create_by=#{createBy,jdbcType=VARCHAR}</if>
+		</set>
+		where id=#{id}
+	</update>
+	<select id="findOne" resultMap="RecruitRm">
+	select * from recruit where ID=#{id}
+	</select>
+	<select id="findAll" resultMap="RecruitRm">
+		select * from recruit order by update_Time desc
+	
+	</select>
+	<select id="findrecruits" resultMap="RecruitRm">
+		select * from recruit where title = #{title} order by update_Time desc
+	</select>
+	<select id="findAllApply" resultMap="ApplyRm">
+		SELECT r.TITLE AS ID ,COUNT(PARENTID) AS USERNAME,r.NUM AS PHONE,a.PARENTID,a.APPLY_TIME
+			FROM apply a
+			LEFT JOIN 
+			recruit r
+			ON a.parentId = r.Id order by apply_Time desc
+	</select>
+	<select id="findAllApplyB_P" resultMap="ApplyRm">
+		SELECT a.ID ,a.USERNAME,a.PHONE,r.TITLE AS PARENTID,a.APPLY_TIME
+			FROM apply a
+			LEFT JOIN 
+			recruit r
+			ON r.ID =a.PARENTID
+			WHERE r.ID = #{parentId} order by apply_Time desc
+	</select>
+	<select id="findAllTitle" resultType="String">
+		select distinct title from recruit order by update_Time desc
+	</select>
+	<resultMap type="Apply" id="ApplyRm" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+	<resultMap type="Recruit" id="RecruitRm" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+	<delete id="delete">
+		delete from recruit where id=#{id}
+
+	</delete>
+	<insert id="saveRecruit">		
+	insert into recruit values(
+			#{id},
+			#{title},
+			#{recruiting},
+			#{num},
+			#{money},
+			#{content},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR},
+			#{requireddate}
+		)
+	</insert>
+	<insert id="saveApply">
+		insert into apply values(
+			#{id},
+			#{username},
+			#{phone},
+			#{parentId},
+			#{applyTime,jdbcType=DATE}
+		)
+	
+	</insert>
+	<delete id="deleteapplyPerson">
+		delete from apply where id = #{id}
+	</delete>
+	<delete id="deleteapply">
+		delete from apply where parentId = #{parentId}
+	</delete>
+	
+</mapper>

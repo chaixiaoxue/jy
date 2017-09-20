@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.two.bbs.mapper.Web_SetMapper">
+	<select id="findWebset" resultMap="WebRM" >
+		select * from web_set	
+	</select>
+	<resultMap type="Web_Set" id="WebRM" autoMapping="true">
+		<id column="id" property="id"/>
+	</resultMap>
+
+
+
+	<update id="updateWebSet">
+		update web_set <set>
+			description=#{description},
+			web_address=#{webAddress},
+			com_address=#{comAddress},
+			phone=#{phone},
+			fax=#{fax},
+			after_Sale=#{afterSale},
+			qq_1=#{qq1},
+			qq_2=#{qq2},
+			qq_3=#{qq3},
+			qq_4=#{qq4},
+			copyright_Information=#{copyrightInformation},
+			email = #{email},
+			<if test="updateTime!=null">update_Time=#{updateTime,jdbcType=VARCHAR},</if>
+			<if test="updateBy!=null">update_by=#{updateBy,jdbcType=VARCHAR}</if>
+			<if test="createTime!=null">create_time=#{createTime,jdbcType=VARCHAR}</if>
+			<if test="createBy!=null">create_by=#{createBy,jdbcType=VARCHAR}</if>
+		</set>
+		where id=#{id}
+	</update>
+	<delete id="deleteGroups">
+		delete from group_p where group_id in(
+			<foreach collection="array" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</delete>
+	<insert id="saveGroup">
+		insert into group_p values(
+			#{groupId},
+			#{groupName},
+			#{state},
+			#{remark},
+			#{orderNo},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	<update id="updateGroup">
+		update group_p <set>
+			<if test="groupName!=null">group_name=#{groupName},</if>
+			<if test="state!=null">state=#{state},</if>
+			<if test="remark!=null">remark=#{remark},</if>
+			<if test="orderNo!=null">order_no=#{orderNo},</if>
+			<if test="updateTime!=null">update_Time=#{updateTime,jdbcType=VARCHAR},</if>
+			<if test="updateBy!=null">update_by=#{updateBy,jdbcType=VARCHAR}</if>
+		</set>
+		<where>
+			group_id=#{groupId}
+		</where>
+	</update>
+	
+</mapper>

@@ -1,0 +1,23 @@
+ul,li{list-style-type: none;}
+
+
+
+.content{width:1200px;height:100%;margin:0 ;background:#FEFEFE;margin-top:30px;border-radius:10px;}
+
+.Post_content{font-size:15px;color:#808080;width:1180px;height:40px;line-height: 40px;padding-left:20px;}
+.post_floor{width:1150px; height:100%;margin:0 ;border:1px #CCC solid;margin-top:30px;}
+
+.post_floor .floor_top{width:1150px;height:30px;}
+.floor_top .floor_author{float:left;width:150px;height:40px;border-bottom:4px #DDDDDD solid;border-right:1px #DDDDDD solid;text-align: center;line-height: 40px;font-size:14px;color:#999999;background:#E5EDF2;}
+.floor_top .floor_title{float:left;width:999px;height:10px;border-bottom:4px #E5EDF2 solid;font-size:19px;font-weight: bold;line-height: 40px;}
+.floor1_top .floor_author{float:left;width:150px;font-size:15px;color:red;border-bottom:1px dashed #DDDDDD ;font-weight: bold;border-right:1px #DDDDDD solid;line-height: 40px;}
+.floor1_top .floor_title{border-bottom:1px dashed #DDDDDD;font-size:15px;font-weight:normal;line-height: 40px;}
+/* .floor1_body .floor_content{height:100%;} */
+.floor1_body{border-bottom:4px #DDDDDD solid;min-height:300px;}
+.floor1_body .floor_author{float:left;width:150px;min-height: 300px;border-right:1px #DDDDDD solid;}
+.floor1_body .floor_author img{margin:10px auto;}
+.floor1_body .floor_author .info{text-align: left;margin-left:20px;color:#000;}
+
+.floor1_body .floor_replay{text-align: center;margin-top:10px;}
+.floor1_body .floor_replay input{width:100px;height:30px;text-align: center;line-height: 30px;border:1px;border-radius:5px;font-size: 20px;}
+.floor1_body .floor_replay input:hover{background:#ce0000;color:#FFF;cursor:pointer; }

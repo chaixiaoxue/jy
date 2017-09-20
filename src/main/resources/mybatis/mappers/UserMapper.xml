@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.two.bbs.mapper.UserMapper">
+	<select id="findAll" resultMap="userRM">
+		SELECT * FROM user WHERE role='0'
+	</select>
+	<resultMap type="User" id="userRM" autoMapping="true">
+		<id column="user_id" property="userId"/>
+	</resultMap>
+	<select id="findOne" resultMap="userRM">
+			SELECT u.*,g_id,group_name FROM
+		user_p u
+		LEFT JOIN 
+		(SELECT group_id g_id,group_name FROM group_p) g
+		ON u.group_id=g.g_id
+		where u.user_id=#{userId}
+	</select>
+	<select id="findUserByUsername" resultMap="userRM">
+		SELECT * FROM
+		user 
+		where username=#{username}
+	</select>
+	<select id="findUserByEmail" resultMap="userRM">
+		SELECT u.*,g_id,group_name FROM
+		user_p u
+		LEFT JOIN 
+		(SELECT group_id g_id,group_name FROM group_p) g
+		ON u.group_id=g.g_id
+		where email=#{email}
+	</select>
+	<select id="findUserByNAndP" resultMap="userRM">
+				
+SELECT * FROM user WHERE username = #{userName} AND PASSWORD = #{password}
+ 
+	</select>
+	
+	<select id="findAllManagers" resultMap="userRM">
+		SELECT * FROM
+(SELECT user_id,group_id,username FROM user_p)u
+LEFT JOIN
+(SELECT group_id g_id,group_name,order_no FROM group_p)g
+ON g.g_id=u.group_id
+WHERE g.order_no NOT IN (1,2,3,4)
+	</select>
+	<select id="searchUsersByKeywords" resultMap="userRM">
+		select * from 
+		(select * from user_p)u
+		left join
+		(select group_id g_id,group_name from group_p)g
+		on u.group_id=g.g_id
+		where g.group_name like concat('%',#{keywords},'%')
+	</select>
+	<select id="searchUsersByGid" resultMap="userRM">
+		select * from 
+		(select * from user_p)u
+		left join
+		(select group_id g_id,group_name from group_p)g
+		on u.group_id=g.g_id
+		where g.g_id=#{groupId}
+	</select>
+	<delete id="deleteUsers">
+		delete from user where user_id=#{id} 
+	</delete>
+	<update id="updateState">
+		update user set lostLoginIp =#{lastLoginIp} where user_id =#{userId}
+	</update>
+	<update id="updateGroup">
+		update user set password =#{renewpass} where user_id =#{userId}
+		
+	</update>
+	<update id="updateUserGroupForSection">
+		update user_p set group_id=#{groupId} where user_id=#{managerId}
+	</update>
+	<update id="updateUser">
+		update user_p <set>
+			group_id=#{groupId},
+			username=#{username},
+			password=#{password},
+			nickname=#{nickname},
+			email=#{email},
+			state=#{state},
+			level=#{level},
+			exp=#{exp},
+			image=#{image},
+			order_no=#{orderNo},
+			<if test="updateTime!=null">update_Time=#{updateTime,jdbcType=VARCHAR},</if>
+			<if test="updateBy!=null">update_by=#{updateBy,jdbcType=VARCHAR}</if>
+			<if test="createTime!=null">create_time=#{createTime,jdbcType=VARCHAR}</if>
+			<if test="createBy!=null">create_by=#{createBy,jdbcType=VARCHAR}</if>
+		</set>
+		where user_id=#{userId}
+	</update>
+	<update id="updateUserTime">
+		update user <set>
+			lostlogin_Time=#{lostLoginTime}
+		</set>
+		where user_id=#{userId}
+	</update>
+	
+	<update id="updateExp">
+		update user_p <set>
+			exp=#{exp}
+		</set>
+		where user_id=#{userId}
+	</update>
+	<update id="updateLevel">
+		update user <set>
+			Times=#{i}
+		</set>
+		where user_id=#{userId}
+	</update>
+	<insert id="saveUser">
+		insert into user values(
+			#{userId},
+			#{username},
+			#{password},
+			#{role},
+			#{lastLoginIp,jdbcType=VARCHAR},
+			#{createTime,jdbcType=VARCHAR},
+			#{createBy,jdbcType=VARCHAR},
+			#{lostLoginTime,jdbcType=VARCHAR},
+			#{updateBy,jdbcType=VARCHAR},
+			#{times},
+			#{updateTime,jdbcType=VARCHAR}
+		)
+	</insert>
+</mapper>

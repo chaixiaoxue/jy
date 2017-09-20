@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.two.bbs.mapper.PostMapper">
+	<!--查询所有的帖子列表  -->
+	<select id="findAll" resultMap="postRM">
+		SELECT p.post_id,p.post_name,p.user_id,p.section_id,p.post_content,p.state,p.cream,p.top,p.passed_time,p.order_no,p.create_time,p.update_time,p.s_name,u.u_name FROM
+		(SELECT * FROM
+		(SELECT * from post_p) p
+		LEFT JOIN
+		(SELECT section_id s_id,section_name s_name FROM section_p)s
+		ON p.section_id=s.s_id) p
+		LEFT JOIN
+		(SELECT USER_ID u_id,NICKNAME u_name from user_p) u
+		ON u.u_id=p.user_id
+		order by p.update_time desc
+	</select>
+	<resultMap type="Post" id="postRM" autoMapping="true">
+		<id column="post_id" property="postId"/>
+		
+		<association property="user" javaType="User">
+			<id column="user_id" property="userId"/>
+			<result column="u_name" property="nickname"/>
+		</association>
+		<association property="section" javaType="Section">
+			<id column="section_id" property="sectionId"/>
+			<result column="s_name" property="sectionName"/>
+		</association>
+	</resultMap>
+	
+	<!--批量删除  -->
+	<delete id="deletePost">
+		delete from post_p where post_id in(
+			<foreach collection="array" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</delete>
+	<!--删除回复帖  -->
+	<delete id="deleteP_R">
+		delete from post_reply_p where post_id in(
+			<foreach collection="array" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</delete>
+	<!--修改帖子加精  -->
+	<update id="updatecream">
+		update post_p set cream=#{iscream} where post_id in(
+			<foreach collection="postId" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</update>
+	<!--修改帖子注解  -->
+	<update id="updatetop">
+		update post_p set top=#{istop} where post_id in(
+			<foreach collection="postId" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</update>
+	<!--修改帖子所属版块  -->
+	<update id="updateSection">
+		update post_p set section_id=#{sectionId} where post_id in(
+			<foreach collection="postId" item="id" separator=",">
+				#{id}
+			</foreach>
+		)
+	</update>
+	<!--查找一个帖子的详细信息包括帖子的回帖  -->
+	<select id="findOne" resultMap="onePostRM">
+		SELECT * FROM 	
+			(SELECT * FROM	
+				(SELECT * FROM  
+				  (SELECT post_id AS p_id,post_name AS p_name,user_id AS p_u_id,section_id,post_content,state,cream,top,passed_time,order_no,
+				   create_time AS p_create_time,update_time AS p_update_time FROM post_p)p
+				LEFT JOIN  
+					(SELECT * FROM
+						(SELECT reply_id AS r_id,user_id AS u_id,post_id AS r_p_id,reply_content,create_time AS r_create_time,update_time AS r_update_time FROM post_reply_p)r
+					LEFT JOIN
+						(SELECT user_id AS r_u_id,NICKNAME AS r_u_name,LEVEL AS r_u_level FROM user_p)u
+					ON r.u_id=u.r_u_id)r
+				ON p.p_id=r.r_p_id)p
+			LEFT JOIN
+				(SELECT section_id AS s_id,section_name AS s_name FROM section_p)s
+			ON p.section_id=s.s_id)p
+		LEFT JOIN
+				(SELECT user_id AS p_u_id,NICKNAME AS p_u_name,LEVEL FROM user_p)u
+		ON p.p_u_id=u.p_u_id
+		WHERE p_id=#{postId}
+	</select>
+	<resultMap type="Post" id="onePostRM" autoMapping="true">
+		<id column="p_id" property="postId"/>
+		<result column="p_name" property="postName"/>
+		<result column="p_create_time" property="createTime"/>
+		<association property="user" javaType="User">
+			<id column="p_u_id" property="userId"/>
+			<result column="p_u_name" property="nickname"/>
+			<result column="level" property="level"/>
+		</association>
+		<association property="section" javaType="Section">
+			<id column="s_id" property="sectionId"/>
+			<result column="s_name" property="sectionName"/>
+		</association>
+		<collection property="rList" ofType="PostReply">
+			<id column="r_id" property="replyId"/>
+			<result column="reply_content" property="replyContent"/>
+			<result column="r_create_time" property="createTime"/>
+			<association property="user" javaType="User">
+				<id column="r_u_id" property="userId"/>
+				<result column="r_u_name" property="nickname"/>
+				<result column="r_u_level" property="level"/>
+			</association>
+		</collection>
+	</resultMap>
+	<!--模糊搜索  -->
+	<select id="findMore" resultMap="postRM">
+		SELECT p.post_id,p.post_name,p.user_id,p.section_id,p.post_content,p.state,p.cream,p.top,p.passed_time,p.order_no,p.create_time,p.update_time,p.s_name,u.u_name FROM
+(SELECT * FROM
+(SELECT * from post_p) p
+LEFT JOIN
+(SELECT section_id s_id,section_name s_name FROM section_p)s
+ON p.section_id=s.s_id) p
+LEFT JOIN
+(SELECT USER_ID u_id,NICKNAME u_name from user_p) u
+ON u.u_id=p.user_id
+where p.post_name like #{keywords}
+	</select>
+	<!--朝找未审核的帖子  -->
+	<select id="findPostByState" resultMap="postRM">
+		select * from 
+		(SELECT p.post_id,p.post_name,p.user_id,p.section_id,p.post_content,p.state,p.cream,p.top,p.passed_time,p.order_no,p.create_time,p.update_time,p.s_name,u.u_name FROM
+(SELECT * FROM
+(SELECT * from post_p) p
+LEFT JOIN
+(SELECT section_id s_id,section_name s_name FROM section_p)s
+ON p.section_id=s.s_id) p
+LEFT JOIN
+(SELECT USER_ID u_id,NICKNAME u_name from user_p) u
+ON u.u_id=p.user_id)p
+		WHERE p.state=0
+	</select>
+	
+	<!--更改通过状态  -->
+	<update id="updateState">
+		UPDATE post_p SET state=#{state}
+		WHERE post_id=#{postId}
+	</update>
+	
+	
+	
+	<!-- 根据回帖的id查看其回帖 -->
+	<!-- <select id="findReply" resultMap="findReplyRm">
+		SELECT * FROM	
+			(SELECT * FROM	
+				(SELECT reply_id FROM post_reply_p)r
+			LEFT JOIN
+				(SELECT parent_id AS reply_p_id,reply_id AS r_id,user_id AS u_id,post_id AS r_post_id,reply_content,create_time AS r_create_time,update_time AS r_update_time FROM post_reply_p)r_p
+			ON r.reply_id=r_p.reply_p_id)r
+		LEFT JOIN
+			(SELECT * FROM user_p)u
+		ON r.u_id=u.user_id
+		WHERE reply_id=#{replyId}
+		
+	</select>
+	
+	<resultMap type="PostReply" id="findReplyRm">
+		<id column="r_id" property="replyId"/>
+		<result column="reply_content" property="replyContent"/>
+		<result column="r_create_time" property="createTime"/>
+		回复人
+		
+		<association property="user" javaType="User">
+			<id column="user_id" property="userId"/>
+			<result column="NICKNAME" property="NICKNAME"/>
+			<result column="level" property="level"/>
+		</association>
+	</resultMap>
+		 -->
+
+<!-- <select id="findReplyForC" resultMap="findReplyCRm">
+		SELECT * FROM 
+(SELECT * FROM	
+	(SELECT * FROM
+		(SELECT reply_id r_id FROM post_reply_p WHERE parent_id = #{replyId})r
+			LEFT JOIN 
+			(SELECT * FROM post_reply_p)p
+	ON p.parent_id = r.r_id
+		WHERE user_id = (SELECT user_id u_id FROM post_reply_p WHERE reply_id=#{replyId}))p
+		LEFT JOIN 
+		(SELECT user_id AS u_id ,reply_id p_id FROM post_reply_p)u
+		ON p.r_id=u.p_id)p
+		LEFT JOIN 
+		(SELECT user_id us_id ,NICKNAME FROM user_p)u
+		ON p.u_id = u.us_id
+	</select>	
+	
+	<resultMap type="PostReply" id="findReplyCRm">
+		<id column="r_id" property="replyId"/>
+		<result column="reply_content" property="replyContent"/>
+		<result column="create_time" property="createTime"/>
+		回复人
+		<collection property="rList" ofType="PostReply">
+			<id column="reply_id" property="replyId"></id>
+			<association property="user" javaType="User">
+				<id column="us_id" property="userId"/>
+				<result column="NICKNAME" property="NICKNAME"/>
+			</association>
+		</collection>
+	</resultMap> -->
+	
+		
+	<select id="findReply" resultMap="findReplyCRm">
+		SELECT * FROM 
+(SELECT * FROM	
+	(SELECT * FROM
+		(SELECT * FROM 
+		(SELECT parent_id AS c_id,reply_id AS r_id,user_id AS r_cu_id,reply_content r_c_c,
+		create_time AS r_c_creatTime,update_time AS r_c_updateTime  FROM post_reply_p WHERE parent_id = #{replyId})r
+		LEFT JOIN 
+		(SELECT NICKNAME,user_id u_cu_id FROM user_p)p
+		
+		ON p.u_cu_id = r.r_cu_id
+		
+		)r
+		LEFT JOIN 
+		(SELECT * FROM post_reply_p WHERE user_id = (SELECT user_id u_id FROM post_reply_p WHERE reply_id=#{replyId}))p
+		ON p.parent_id = r.r_id)p)p						 
+		
+		
+		LEFT JOIN
+		(SELECT NICKNAME  c_name, user_id c_id  FROM user_p)u
+		ON p.user_id = u.c_id
+		ORDER BY r_c_creatTime
+	</select>
+		
+		<resultMap type="PostReply" id="findReplyCRm" autoMapping="true">
+		<id column="r_id" property="replyId"/>
+		<result column="r_c_c" property="replyContent"/>
+		<result column="r_c_creatTime" property="createTime"/>
+		<!-- 回复人 -->
+		<association property="user" javaType="User">
+			<id column="u_cu_id" property="userId"/>
+			<result column="NICKNAME" property="nickname"/>
+			
+		</association>
+		<collection property="rList" ofType="PostReply" >
+			<id column="reply_id" property="replyId"></id>
+			<id column="reply_content" property="replyContent"></id>
+			<association property="user" javaType="User" >
+				<id column="c_id" property="userId"/>
+				<result column="c_name" property="nickname"/>
+			</association>
+		</collection>
+	</resultMap>
+
+	<!--根据版块Id查询帖子列表  -->
+	<select id="findPostsBySectionId" resultMap="postRM">
+		SELECT p.post_id,p.post_name,p.user_id,p.section_id,p.post_content,p.state,p.cream,p.top,p.passed_time,p.order_no,p.create_time,p.update_time,p.s_name,u.u_name FROM
+(SELECT * FROM
+(SELECT * from post_p) p
+LEFT JOIN
+(SELECT section_id s_id,section_name s_name FROM section_p)s
+ON p.section_id=s.s_id) p
+LEFT JOIN
+(SELECT USER_ID u_id,NICKNAME u_name from user_p) u
+ON u.u_id=p.user_id
+where p.section_id=#{sectionId}
+order by p.update_time desc
+	</select>	
+	
+	
+	<!-- 根据用户查找用户的帖子  宋红星 -->
+	<select id="findPostsByUserId" resultMap="userpostRM">
+	select POST_ID,USER_ID,POST_NAME,p.UPDATE_TIME p_updateTime,s.SECTION_ID,s.SECTION_NAME,
+	(select count(*) from post_p p left join section_p s on p.SECTION_ID=s.SECTION_ID where USER_ID =#{userId})count 
+	from post_p p left join section_p s on p.SECTION_ID=s.SECTION_ID where USER_ID =#{userId}
+	</select>
+	<resultMap type="Post" id="userpostRM" autoMapping="true">
+		<id column="post_id" property="postId"/>
+		<result column="count" property="count"/>
+		<result column="p_updateTime" property="updateTime"/>
+		<association property="section" javaType="Section">
+			<id column="section_id" property="sectionId"/>
+			<result column="section_name" property="sectionName"/>
+		</association>
+	</resultMap>
+
+	
+	
+	<!--根据用户id查询这个用户所发的帖子  -->
+	<!-- <select id="findPostsByUserId" resultMap="postRM">
+		SELECT p.post_id,p.post_name,p.user_id,p.section_id,p.post_content,p.state,p.cream,p.top,p.passed_time,p.order_no,p.create_time,p.update_time,p.s_name,u.u_name FROM
+	(SELECT * FROM
+	(SELECT * from post_p) p
+	LEFT JOIN
+	(SELECT section_id s_id,section_name s_name FROM section_p)s
+	ON p.section_id=s.s_id) p
+	LEFT JOIN
+	(SELECT USER_ID u_id,NICKNAME u_name from user_p) u
+	ON u.u_id=p.user_id
+	where p.user_id=#{userId}
+	order by p.p.update_time desc
+
+	</select> -->
+	
+	
+	<!--根据用户id查询这个用户回复过的主贴  -->
+	  <select id="findPostsReplyByUserId" resultType="Map">
+	  	SELECT DISTINCT post_id,po_id FROM
+(SELECT post_id po_id,parent_id p_id FROM post_reply_p WHERE user_id=#{userId} )p
+LEFT JOIN 
+(SELECT * FROM post_reply_p)r
+ON r.post_id=p.p_id
+	  </select>
+	  
+	  
+	  <!-- 保存用户发的帖子 -->
+	<insert id="savePost">
+		insert into post_p values(
+			#{postId},
+			#{postName},
+			#{userId},
+			#{sectionId},
+			#{postContent},
+			#{state},
+			#{cream},
+			#{top},
+			#{passedTime,jdbcType=DATE},
+			#{orderNo},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	<!-- 保存用户发的回帖 -->
+	<insert id="saveReply">
+		insert into post_reply_p values(
+			#{replyId},
+			#{user.userId},
+			#{postId,jdbcType=VARCHAR},
+			#{parentId,jdbcType=VARCHAR},
+			#{replyContent},
+			#{createTime,jdbcType=DATE},
+			#{createBy,jdbcType=VARCHAR},
+			#{updateTime,jdbcType=DATE},
+			#{updateBy,jdbcType=VARCHAR}
+		)
+	</insert>
+	  
+	  
+</mapper>
+ 
